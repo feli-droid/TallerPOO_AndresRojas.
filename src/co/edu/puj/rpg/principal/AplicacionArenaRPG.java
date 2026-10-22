@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-
+/** Punto de entrada: menú de gestión de la Arena (relaciones entre clases) + batalla. */
 public class AplicacionArenaRPG {
 
     // Colecciones globales
@@ -109,7 +109,7 @@ public class AplicacionArenaRPG {
         if (p == null) return;
         Escuadron e = elegirEscuadron();
         if (e == null) return;
-        e.reclutarPersonaje(p);
+        e.reclutarPersonaje(p);                    // AGREGACIÓN
     }
 
     private static void expulsarDeEscuadron() {
@@ -144,7 +144,7 @@ public class AplicacionArenaRPG {
         Gremio g = elegirGremio();
         if (g == null) return;
         Gremio anterior = p.getGremio();
-        p.unirseAGremio(g);
+        p.unirseAGremio(g);                        // ASOCIACIÓN BIDIRECCIONAL
         if (anterior != null && anterior != g) {
             System.out.printf("%s dejo el gremio %s.%n", p.getNombre(), anterior.getNombre());
         }
@@ -164,7 +164,7 @@ public class AplicacionArenaRPG {
             System.out.println("El danio no puede ser negativo.");
             return;
         }
-        p.equiparArma(new Arma(nombre, danio));
+        p.equiparArma(new Arma(nombre, danio));    // ASOCIACIÓN UNIDIRECCIONAL
     }
 
     private static void desequiparArma() {
@@ -205,7 +205,7 @@ public class AplicacionArenaRPG {
         if (!personajes.isEmpty()) {
             int n = Consola.leerEntero("\nVer reporte detallado de un personaje (0 = no): ");
             if (n >= 1 && n <= personajes.size()) {
-                System.out.println(personajes.get(n - 1));
+                System.out.println(personajes.get(n - 1));   // toString() con StringBuilder
             }
         }
     }

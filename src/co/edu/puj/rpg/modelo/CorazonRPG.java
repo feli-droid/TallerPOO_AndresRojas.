@@ -12,6 +12,7 @@ public class CorazonRPG {
     public int getSaludBase() { return saludBase; }
     public int getManaBase() { return manaBase; }
 
+    // Manipulación interna: solo accesible dentro del paquete modelo
     void aumentarSaludBase(int cantidad) { this.saludBase += cantidad; }
     void aumentarManaBase(int cantidad) { this.manaBase += cantidad; }
 

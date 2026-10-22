@@ -2,7 +2,7 @@ package co.edu.puj.rpg.principal;
 
 import java.util.Scanner;
 
-
+/** Un único Scanner compartido por toda la aplicación (evita conflictos de lectura sobre System.in). */
 public final class Consola {
     private static final Scanner sc = new Scanner(System.in);
 

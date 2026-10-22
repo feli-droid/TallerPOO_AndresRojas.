@@ -5,7 +5,7 @@ public class Mago extends Personaje {
     protected int puntosMana;
 
     public Mago(String nombre, int vida, int ataqueBase, int posX, int posY, int puntosMana) {
-        super(nombre, vida, ataqueBase, posX, posY, puntosMana);
+        super(nombre, vida, ataqueBase, posX, posY, puntosMana);   // el corazon guarda el mana base
         this.puntosMana = puntosMana;
     }
 
@@ -17,7 +17,7 @@ public class Mago extends Personaje {
             return;
         }
         puntosMana -= COSTO_MANA;
-        int dano = calcularAtaqueTotal() * 2;
+        int dano = calcularAtaqueTotal() * 2;          // Bola de fuego
         System.out.printf("%s lanza una BOLA DE FUEGO sobre %s! (mana -%d)%n",
                 nombre, objetivo.getNombre(), COSTO_MANA);
         objetivo.defender(dano);
@@ -25,13 +25,13 @@ public class Mago extends Personaje {
 
     @Override
     public void finalizarTurno() {
-        puntosMana = Math.min(getCorazon().getManaBase(), puntosMana + 5);
+        puntosMana = Math.min(getCorazon().getManaBase(), puntosMana + 5);   // regenera 5 de mana por turno
     }
 
     @Override
     public void descansar() {
         super.descansar();
-        puntosMana = getCorazon().getManaBase();
+        puntosMana = getCorazon().getManaBase();       // el descanso tambien restaura el mana
     }
 
     @Override

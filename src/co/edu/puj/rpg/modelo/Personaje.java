@@ -1,21 +1,24 @@
 package co.edu.puj.rpg.modelo;
 
+/** Clase base abstracta: estado común + relaciones (Arma, Gremio, CorazonRPG). */
 public abstract class Personaje implements ICombatiente {
 
-
+    // Estado común (protected: visible para las subclases)
     protected String nombre;
     protected int vida;
     protected int ataqueBase;
-    protected int posicionX;
-    protected int posicionY;
+    protected int posicionX;   // fila del tablero
+    protected int posicionY;   // columna del tablero
 
+    // Estado encapsulado (taller 1)
     private int nivel = 1;
     private double oro = 50.0;
     private int experiencia = 0;
 
-    private Arma armaEquipada;
-    private Gremio gremio;
-    private final CorazonRPG corazon;
+    // ---------- RELACIONES (taller 2.5) ----------
+    private Arma armaEquipada;            // Asociación unidireccional 0..1 (puede ser null)
+    private Gremio gremio;                // Asociación bidireccional   0..*  a 1 (puede ser null)
+    private final CorazonRPG corazon;     // Composición 1..1 (final: nunca se reemplaza)
 
     public Personaje(String nombre, int vida, int ataqueBase, int posX, int posY) {
         this(nombre, vida, ataqueBase, posX, posY, 0);
@@ -27,17 +30,19 @@ public abstract class Personaje implements ICombatiente {
         this.ataqueBase = ataqueBase;
         this.posicionX = posX;
         this.posicionY = posY;
-        this.armaEquipada = null;
-        this.gremio = null;
-        this.corazon = new CorazonRPG(vida, manaBase);
+        this.armaEquipada = null;                        // inicia desarmado
+        this.gremio = null;                              // inicia sin gremio
+        this.corazon = new CorazonRPG(vida, manaBase);   // COMPOSICIÓN: se crea AQUÍ, dentro del constructor
     }
 
+    // ---------- Métodos abstractos / ganchos ----------
     public abstract void realizarAtaqueEspecial(Personaje objetivo);
 
     public abstract char getSimbolo();
 
     public void finalizarTurno() { }
 
+    // ---------- Asociación unidireccional: Arma ----------
     public void equiparArma(Arma nuevaArma) {
         if (nuevaArma == null) {
             System.out.println("No se puede equipar un arma nula.");
@@ -48,7 +53,7 @@ public abstract class Personaje implements ICombatiente {
     }
 
     public void desequiparArma() {
-        if (this.armaEquipada != null) {
+        if (this.armaEquipada != null) {                 // ¡siempre validar null!
             System.out.printf("%s guarda su arma %s y queda desarmado.%n", nombre, armaEquipada.getNombre());
             this.armaEquipada = null;
         } else {
@@ -58,21 +63,22 @@ public abstract class Personaje implements ICombatiente {
 
     public int calcularAtaqueTotal() {
         int total = this.ataqueBase;
-        if (this.armaEquipada != null) {
+        if (this.armaEquipada != null) {                 // evita NullPointerException
             total += this.armaEquipada.getDanioBase();
         }
         return total;
     }
 
+    // ---------- Asociación bidireccional: Gremio ----------
     public void unirseAGremio(Gremio nuevoGremio) {
         if (nuevoGremio == null || nuevoGremio == this.gremio) {
-            return;
+            return;                                      // nada que hacer
         }
         if (this.gremio != null) {
-            salirDeGremio();
+            salirDeGremio();                             // primero se desvincula del gremio anterior
         }
-        this.gremio = nuevoGremio;
-        nuevoGremio.agregarMiembro(this);
+        this.gremio = nuevoGremio;                       // actualiza su propia referencia
+        nuevoGremio.agregarMiembro(this);                // sincronización cruzada
     }
 
     public void salirDeGremio() {
@@ -80,8 +86,8 @@ public abstract class Personaje implements ICombatiente {
             return;
         }
         Gremio anterior = this.gremio;
-        this.gremio = null;
-        anterior.removerMiembro(this);
+        this.gremio = null;                              // primero se limpia el lado propio...
+        anterior.removerMiembro(this);                   // ...y luego el otro extremo
     }
 
     // ---------- Combate ----------
@@ -142,7 +148,7 @@ public abstract class Personaje implements ICombatiente {
         if (experiencia >= umbral) {
             experiencia -= umbral;
             setNivel(nivel + 1);
-            corazon.aumentarSaludBase(10);
+            corazon.aumentarSaludBase(10);               // el corazón crece (solo Personaje puede)
             ataqueBase += 3;
             vida = getVidaMaxima();
             return true;
@@ -160,6 +166,7 @@ public abstract class Personaje implements ICombatiente {
                 nombre, nivel, vida, getVidaMaxima(), calcularAtaqueTotal(), oro);
     }
 
+    /** Reporte detallado con StringBuilder. Del gremio imprime SOLO el nombre (evita StackOverflowError). */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -175,6 +182,7 @@ public abstract class Personaje implements ICombatiente {
         return sb.toString();
     }
 
+    // ---------- Setters validados (taller 1) ----------
     public void setOro(double oro) {
         if (oro < 0.0) {
             System.out.println("Saldo insuficiente: operacion rechazada.");
@@ -191,6 +199,7 @@ public abstract class Personaje implements ICombatiente {
     }
 
     // ---------- Getters ----------
+    // (no existe setCorazon(): la composición prohíbe reemplazar el corazón)
     public String getNombre() { return nombre; }
     public int getVida() { return vida; }
     public int getVidaMaxima() { return corazon.getSaludBase(); }

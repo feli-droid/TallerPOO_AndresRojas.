@@ -15,7 +15,6 @@ public class Tablero {
         this.cofreY = cofreY;
     }
 
-
     public void actualizar(List<? extends Personaje> heroes, List<? extends Personaje> enemigos) {
         for (int i = 0; i < matriz.length; i++) {
             for (int j = 0; j < matriz[i].length; j++) {

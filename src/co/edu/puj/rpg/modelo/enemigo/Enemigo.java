@@ -2,6 +2,7 @@ package co.edu.puj.rpg.modelo.enemigo;
 
 import co.edu.puj.rpg.modelo.Personaje;
 
+/** Enemigo: ahora es un Personaje (herencia), por eso cabe en las mismas listas y tablero. */
 public class Enemigo extends Personaje {
     private int experienciaRecompensa;
     private double oroRecompensa;

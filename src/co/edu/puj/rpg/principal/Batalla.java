@@ -11,6 +11,7 @@ import co.edu.puj.rpg.tablero.Tablero;
 import java.util.ArrayList;
 import java.util.List;
 
+/** Combate por turnos. Recibe los héroes desde un Escuadron (agregación) y lanza la batalla. */
 public class Batalla {
     private static final double COSTO_POCION_GRANDE = 40.0;
     private static boolean huyo = false;
@@ -20,6 +21,7 @@ public class Batalla {
         huyo = false;
         cofreAlcanzado = false;
 
+        // Copia de trabajo: si un héroe cae aquí, SIGUE existiendo en su Escuadron (agregación)
         List<Personaje> heroes = new ArrayList<>(miembros);
         Tablero tablero = new Tablero(5, 5, 2, 2);
 
@@ -118,16 +120,16 @@ public class Batalla {
                     }
                     break;
                 case 4:
-                    tienda(heroe, inventario);
+                    tienda(heroe, inventario);          // no consume turno
                     break;
                 case 5:
                     huyo = true;
                     turnoConsumido = true;
                     break;
                 case 6:
-                    tablero.actualizar(heroes, enemigos);
+                    tablero.actualizar(heroes, enemigos);   // redibuja con las posiciones actuales
                     System.out.println();
-                    tablero.mostrar();
+                    tablero.mostrar();                      // no consume turno
                     break;
                 default:
                     System.out.println("Opcion invalida. Elige entre 1 y 6.");
@@ -155,9 +157,9 @@ public class Batalla {
         System.out.println("1. Ataque especial   2. Ataque normal   3. Ataque en modo furia");
         int tipo = Consola.leerEntero("Tipo de ataque: ");
         switch (tipo) {
-            case 1: heroe.realizarAtaqueEspecial(objetivo); break;
-            case 2: heroe.atacar(objetivo); break;
-            case 3: heroe.atacar(objetivo, true); break;
+            case 1: heroe.realizarAtaqueEspecial(objetivo); break;   // polimorfismo dinámico
+            case 2: heroe.atacar(objetivo); break;                   // sobrecarga 1
+            case 3: heroe.atacar(objetivo, true); break;             // sobrecarga 2
             default:
                 System.out.println("Tipo de ataque invalido.");
                 return false;
@@ -214,7 +216,7 @@ public class Batalla {
                 System.out.println("Direccion invalida.");
                 return false;
         }
-        if (!tablero.esValida(x, y)) {
+        if (!tablero.esValida(x, y)) {                 // evita IndexOutOfBoundsException
             System.out.println("Movimiento fuera del tablero.");
             return false;
         }
@@ -248,7 +250,7 @@ public class Batalla {
     }
 
     // =====================================================================
-    //  TURNO ENEMIGO
+    //  TURNO ENEMIGO (IA simple)
     // =====================================================================
     private static void turnoEnemigos(List<Personaje> heroes, List<Enemigo> enemigos) {
         System.out.println("\n--- Turno enemigo ---");
