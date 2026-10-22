@@ -22,7 +22,7 @@ public class Escuadron {
             System.out.printf("%s ya pertenece al escuadron %s.%n", p.getNombre(), nombre);
             return;
         }
-        miembros.add(p);   // NO se crea ni se modifica 'p': solo se guarda la referencia
+        miembros.add(p);
         System.out.printf("%s fue reclutado en el escuadron %s.%n", p.getNombre(), nombre);
     }
 

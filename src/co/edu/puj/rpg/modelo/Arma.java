@@ -1,5 +1,6 @@
 package co.edu.puj.rpg.modelo;
 
+/** Arma: NO conoce a su dueño (asociación unidireccional Personaje -> Arma). */
 public class Arma {
     private final String nombre;
     private final int danioBase;
