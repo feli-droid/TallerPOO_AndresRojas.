@@ -1,4 +1,5 @@
 package co.edu.puj.rpg.modelo;
 
-public class ICombatiente {
+public interface ICombatiente {
+    void defender(int danoRecibido);
 }
