@@ -1,12 +1,12 @@
 package co.edu.puj.rpg.modelo;
 
+import co.edu.puj.rpg.modelo.enums.TipoPersonaje;
+
 public class Mago extends Personaje {
     private static final int COSTO_MANA = 15;
-    protected int puntosMana;
 
     public Mago(String nombre, int vida, int ataqueBase, int posX, int posY, int puntosMana) {
-        super(nombre, vida, ataqueBase, posX, posY, puntosMana);   // el corazon guarda el mana base
-        this.puntosMana = puntosMana;
+        super(nombre, TipoPersonaje.MAGO, vida, ataqueBase, posX, posY, puntosMana);   // el maná vive ahora en Personaje
     }
 
     @Override

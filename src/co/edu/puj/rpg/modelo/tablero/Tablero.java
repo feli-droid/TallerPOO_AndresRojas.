@@ -1,4 +1,4 @@
-package co.edu.puj.rpg.tablero;
+package co.edu.puj.rpg.modelo.tablero;
 
 import co.edu.puj.rpg.modelo.Personaje;
 

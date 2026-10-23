@@ -1,6 +1,7 @@
 package co.edu.puj.rpg.modelo.enemigo;
 
 import co.edu.puj.rpg.modelo.Personaje;
+import co.edu.puj.rpg.modelo.enums.TipoPersonaje;
 
 /** Enemigo: ahora es un Personaje (herencia), por eso cabe en las mismas listas y tablero. */
 public class Enemigo extends Personaje {
@@ -9,7 +10,7 @@ public class Enemigo extends Personaje {
 
     public Enemigo(String nombre, int vida, int ataqueBase, int posX, int posY,
                    int experienciaRecompensa, double oroRecompensa) {
-        super(nombre, vida, ataqueBase, posX, posY);
+        super(nombre, TipoPersonaje.GUERRERO, vida, ataqueBase, posX, posY);
         this.experienciaRecompensa = experienciaRecompensa;
         this.oroRecompensa = oroRecompensa;
     }

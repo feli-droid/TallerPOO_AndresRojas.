@@ -1,10 +1,12 @@
 package co.edu.puj.rpg.modelo;
 
+import co.edu.puj.rpg.modelo.enums.TipoPersonaje;
+
 public class Guerrero extends Personaje {
     protected int fuerzaEscudo;
 
     public Guerrero(String nombre, int vida, int ataqueBase, int posX, int posY, int fuerzaEscudo) {
-        super(nombre, vida, ataqueBase, posX, posY);   // inicializa el estado heredado
+        super(nombre, TipoPersonaje.GUERRERO, vida, ataqueBase, posX, posY);   // inicializa el estado heredado
         this.fuerzaEscudo = fuerzaEscudo;
     }
 

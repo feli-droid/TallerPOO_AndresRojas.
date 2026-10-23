@@ -1,4 +1,4 @@
-package co.edu.puj.rpg.inventario;
+package co.edu.puj.rpg.modelo.inventario;
 
 public class Pocion {
     private final String nombre;

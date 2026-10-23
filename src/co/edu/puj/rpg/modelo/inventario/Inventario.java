@@ -1,4 +1,4 @@
-package co.edu.puj.rpg.inventario;
+package co.edu.puj.rpg.modelo.inventario;
 
 import java.util.ArrayList;
 import java.util.List;

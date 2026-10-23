@@ -1,5 +1,15 @@
 package co.edu.puj.rpg.modelo;
 
+import co.edu.puj.rpg.exception.CapacidadExcedidaException;
+import co.edu.puj.rpg.exception.SinManaException;
+import co.edu.puj.rpg.exception.VidaInsuficienteException;
+import co.edu.puj.rpg.modelo.enums.EstadoPersonaje;
+import co.edu.puj.rpg.modelo.enums.TipoPersonaje;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /** Clase base abstracta: estado común + relaciones (Arma, Gremio, CorazonRPG). */
 public abstract class Personaje implements ICombatiente {
 
@@ -7,6 +17,7 @@ public abstract class Personaje implements ICombatiente {
     protected String nombre;
     protected int vida;
     protected int ataqueBase;
+    protected int puntosMana;  // maná actual (los tipos sin magia empiezan en 0)
     protected int posicionX;   // fila del tablero
     protected int posicionY;   // columna del tablero
 
@@ -15,19 +26,29 @@ public abstract class Personaje implements ICombatiente {
     private double oro = 50.0;
     private int experiencia = 0;
 
+    // ---------- ENUMS Y COLECCIONES (taller 3) ----------
+    private static final int MAX_HABILIDADES = 5;                  // capacidad del libro de habilidades
+    private final TipoPersonaje tipoPersonaje;                     // reemplaza al String tipo
+    private EstadoPersonaje estado;                                // reemplaza a las banderas de vida/muerte
+    private final Set<String> habilidades = new HashSet<>();       // sin duplicados
+
     // ---------- RELACIONES (taller 2.5) ----------
     private Arma armaEquipada;            // Asociación unidireccional 0..1 (puede ser null)
     private Gremio gremio;                // Asociación bidireccional   0..*  a 1 (puede ser null)
     private final CorazonRPG corazon;     // Composición 1..1 (final: nunca se reemplaza)
 
-    public Personaje(String nombre, int vida, int ataqueBase, int posX, int posY) {
-        this(nombre, vida, ataqueBase, posX, posY, 0);
+    public Personaje(String nombre, TipoPersonaje tipoPersonaje, int vida, int ataqueBase, int posX, int posY) {
+        this(nombre, tipoPersonaje, vida, ataqueBase, posX, posY, 0);
     }
 
-    public Personaje(String nombre, int vida, int ataqueBase, int posX, int posY, int manaBase) {
+    public Personaje(String nombre, TipoPersonaje tipoPersonaje, int vida, int ataqueBase,
+                     int posX, int posY, int manaBase) {
         this.nombre = nombre;
+        this.tipoPersonaje = tipoPersonaje;
+        this.estado = EstadoPersonaje.VIVO;                // estado inicial por defecto
         this.vida = vida;
         this.ataqueBase = ataqueBase;
+        this.puntosMana = manaBase;
         this.posicionX = posX;
         this.posicionY = posY;
         this.armaEquipada = null;                        // inicia desarmado
@@ -62,7 +83,7 @@ public abstract class Personaje implements ICombatiente {
     }
 
     public int calcularAtaqueTotal() {
-        int total = this.ataqueBase;
+        int total = this.ataqueBase + (int) tipoPersonaje.getBonificadorAtaqueBase();   // bonificador del enum
         if (this.armaEquipada != null) {                 // evita NullPointerException
             total += this.armaEquipada.getDanioBase();
         }
@@ -116,22 +137,69 @@ public abstract class Personaje implements ICombatiente {
 
     @Override
     public void defender(int danoRecibido) {
-        recibirDano(danoRecibido);
-        System.out.printf("  -> %s recibe %d de dano (vida: %d/%d)%n", nombre, danoRecibido, vida, getVidaMaxima());
+        int mitigacion = (int) tipoPersonaje.getBonificadorDefensaBase();   // bonificador del enum
+        int danoFinal = Math.max(1, danoRecibido - mitigacion);
+        recibirDano(danoFinal);
+        System.out.printf("  -> %s recibe %d de dano (vida: %d/%d)%n", nombre, danoFinal, vida, getVidaMaxima());
         if (!estaVivo()) {
             System.out.printf("  -> %s ha caido!%n", nombre);
         }
     }
 
     public boolean estaVivo() {
-        return vida > 0;
+        return estado != EstadoPersonaje.DERROTADO;
     }
 
     public void recibirDano(int cantidad) {
         this.vida = Math.max(0, this.vida - cantidad);
+        if (this.vida == 0) {
+            this.estado = EstadoPersonaje.DERROTADO;
+        }
+    }
+
+    // ---------- Reglas de negocio con excepciones ----------
+    /** Lanza un hechizo. Verificada: SinManaException si costoMana > maná actual. */
+    public void lanzarHechizo(int costoMana) throws SinManaException {
+        if (costoMana > puntosMana) {
+            throw new SinManaException(String.format(
+                    "%s no tiene mana suficiente: el hechizo cuesta %d y solo tiene %d.",
+                    nombre, costoMana, puntosMana));
+        }
+        puntosMana -= costoMana;
+        System.out.printf("%s lanza un hechizo! (mana -%d, restante %d)%n", nombre, costoMana, puntosMana);
+    }
+
+    /** Descuenta vida como costo de una acción. No verificada: VidaInsuficienteException si costoVida >= vida. */
+    public void consumirVida(int costoVida) {
+        if (costoVida >= vida) {
+            throw new VidaInsuficienteException(String.format(
+                    "%s no puede pagar %d de vida: solo tiene %d.", nombre, costoVida, vida));
+        }
+        vida -= costoVida;
+    }
+
+    // ---------- Libro de habilidades (HashSet) ----------
+    /** true si se aprendió; false si ya la conocía. Verificada: CapacidadExcedidaException si el libro está lleno. */
+    public boolean aprenderHabilidad(String habilidad) throws CapacidadExcedidaException {
+        if (habilidades.contains(habilidad)) {
+            return false;                                  // duplicado rechazado, el conjunto no cambia
+        }
+        if (habilidades.size() >= MAX_HABILIDADES) {
+            throw new CapacidadExcedidaException(String.format(
+                    "El libro de %s esta lleno (maximo %d habilidades).", nombre, MAX_HABILIDADES));
+        }
+        return habilidades.add(habilidad);
+    }
+
+    public Set<String> obtenerHabilidades() {
+        return Collections.unmodifiableSet(habilidades);   // vista de solo lectura
     }
 
     public void curar(int cantidad) {
+        if (!estaVivo()) {
+            System.out.printf("%s esta derrotado y no puede curarse.%n", nombre);
+            return;
+        }
         int antes = this.vida;
         this.vida = Math.min(getVidaMaxima(), this.vida + cantidad);
         System.out.printf("%s recupera %d de vida (vida: %d/%d)%n", nombre, vida - antes, vida, getVidaMaxima());
@@ -140,6 +208,7 @@ public abstract class Personaje implements ICombatiente {
     /** Recupera toda la vida (las subclases pueden restaurar más cosas). */
     public void descansar() {
         this.vida = getVidaMaxima();
+        this.estado = EstadoPersonaje.VIVO;
     }
 
     public boolean ganarExperiencia(int xp) {
@@ -171,6 +240,7 @@ public abstract class Personaje implements ICombatiente {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append("=== ").append(nombre).append(" (").append(getClass().getSimpleName()).append(") ===\n");
+        sb.append("Tipo    : ").append(tipoPersonaje).append(" | Estado: ").append(estado).append('\n');
         sb.append("Nivel   : ").append(nivel).append(" | XP: ").append(experiencia)
                 .append("/").append(nivel * 50).append('\n');
         sb.append("Vida    : ").append(vida).append("/").append(getVidaMaxima()).append('\n');
@@ -178,6 +248,7 @@ public abstract class Personaje implements ICombatiente {
         sb.append("Arma    : ").append(armaEquipada != null ? armaEquipada.toString() : "Desarmado").append('\n');
         sb.append("Gremio  : ").append(gremio != null ? gremio.getNombre() : "Sin gremio").append('\n');
         sb.append("Corazon : ").append(corazon).append('\n');
+        sb.append("Habilid.: ").append(habilidades).append('\n');
         sb.append("Oro     : ").append(String.format("%.2f", oro));
         return sb.toString();
     }
@@ -209,6 +280,9 @@ public abstract class Personaje implements ICombatiente {
     public int getNivel() { return nivel; }
     public double getOro() { return oro; }
     public int getExperiencia() { return experiencia; }
+    public int getPuntosMana() { return puntosMana; }
+    public TipoPersonaje getTipoPersonaje() { return tipoPersonaje; }
+    public EstadoPersonaje getEstado() { return estado; }
     public Arma getArmaEquipada() { return armaEquipada; }
     public Gremio getGremio() { return gremio; }
     public CorazonRPG getCorazon() { return corazon; }
